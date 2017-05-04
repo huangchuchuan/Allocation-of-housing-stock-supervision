@@ -6,6 +6,8 @@ import requests
 import datetime
 import traceback
 import ConfigParser
+import time
+import random
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -127,15 +129,18 @@ class HousingStockSpider():
             data_list = self.get_data_by_date(date_str)
             if data_list:
                 # 写单独文件
-                with open(os.path.join(HousingStockSpider.DATA_PATH, '{}.csv'.format(date_str)), 'w'):
+                with open(os.path.join(HousingStockSpider.DATA_PATH, '{}.csv'.format(date_str)), 'w') as f:
                     for data in data_list:
                         line = ','.join(data)
                         f.write(line+os.linesep)
                 # 写汇总文件
-                with open(HousingStockSpider.DATA_FILE, 'a'):
+                with open(HousingStockSpider.DATA_FILE, 'a') as f:
                     for data in data_list:
                         line = ','.join(data)
                         f.write(line+os.linesep)
+            sleep_time = random.randint(1, 5)
+            print u'休眠{}s...'.format(sleep_time)
+            time.sleep(sleep_time)
             # 日期自增
             start_date += datetime.timedelta(days=1)
         # 写回配置
