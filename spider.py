@@ -8,6 +8,7 @@ import traceback
 import ConfigParser
 import time
 import random
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -53,7 +54,7 @@ class HousingStockSpider():
             print u'正在创建数据文件夹...'
             os.mkdir(HousingStockSpider.DATA_PATH)
         try:
-            resp = requests.get(HousingStockSpider.BASE_URL)
+            resp = requests.get(HousingStockSpider.BASE_URL, headers=HousingStockSpider.default_headers)
             if resp.status_code == 200:
                 print u'初始化成功'
         except:
@@ -74,12 +75,14 @@ class HousingStockSpider():
         rows_list = []
         try:
             # 获取数据总量
-            resp = requests.get(url=HousingStockSpider.AJAX_URL, params=HousingStockSpider.default_query_dict)
+            resp = requests.get(url=HousingStockSpider.AJAX_URL, params=HousingStockSpider.default_query_dict,
+                                headers=HousingStockSpider.default_headers)
             json_data = resp.json()
             total = json_data['total']  # "rows": [{ "ID": "1","cell": ["1","32470-001978","宝坻区宝鑫景苑东湖园1-2-10"]},]
             HousingStockSpider.default_query_dict['gRow_'] = total  # 更换请求的数据量为最大值，加快速度
             # 获取所有数据
-            resp = requests.get(url=HousingStockSpider.AJAX_URL, params=HousingStockSpider.default_query_dict)
+            resp = requests.get(url=HousingStockSpider.AJAX_URL, params=HousingStockSpider.default_query_dict,
+                                headers=HousingStockSpider.default_headers)
             json_data = resp.json()
             rows = json_data['rows']
             for row in rows:
@@ -99,9 +102,9 @@ class HousingStockSpider():
         if not os.path.exists(HousingStockSpider.CONFIG_FILE):
             print u'正在重新生成配置文件...'
             with open(HousingStockSpider.CONFIG_FILE, 'w') as f:
-                f.write('[default]'+os.linesep)
+                f.write('[default]' + os.linesep)
                 for key, value in HousingStockSpider.default_config_dict.iteritems():
-                    f.write(('%s = %s'+os.linesep) % (key, value))
+                    f.write(('%s = %s' + os.linesep) % (key, value))
         # 读取开始日期
         cf = ConfigParser.ConfigParser()
         cf.read(HousingStockSpider.CONFIG_FILE)
@@ -132,12 +135,12 @@ class HousingStockSpider():
                 with open(os.path.join(HousingStockSpider.DATA_PATH, '{}.csv'.format(date_str)), 'w') as f:
                     for data in data_list:
                         line = ','.join(data)
-                        f.write(line+os.linesep)
+                        f.write(line + os.linesep)
                 # 写汇总文件
                 with open(HousingStockSpider.DATA_FILE, 'a') as f:
                     for data in data_list:
                         line = ','.join(data)
-                        f.write(line+os.linesep)
+                        f.write(line + os.linesep)
             sleep_time = random.randint(1, 5)
             print u'休眠{}s...'.format(sleep_time)
             time.sleep(sleep_time)
@@ -145,7 +148,7 @@ class HousingStockSpider():
             start_date += datetime.timedelta(days=1)
         # 写回配置
         cf.set('default', 'start_date', start_date.strftime('%Y-%m-%d'))
-        cf.write(open(HousingStockSpider.CONFIG_FILE))
+        cf.write(open(HousingStockSpider.CONFIG_FILE, 'w'))
 
 
 if __name__ == '__main__':
